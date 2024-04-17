@@ -30,7 +30,7 @@ useEffect(()=> {
 
 
   return (
-    <div >
+    < div className='flex w-screen'>
       <FileUpload />
     </div>
   )

@@ -1,21 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import PageDisplay from './PageDisplay.jsx';
 
 const FileUpload = () => {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState('');
 
   const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
+    // Clean up the previous URL
+    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+
+    const file = event.target.files[0];
+    setSelectedFile(file);
+
+    const url = URL.createObjectURL(file);
+    setPdfUrl(url);
   };
 
   const handleUpload = (event) => {
     event.preventDefault();
-    // Here you can handle the file upload process (e.g., sending it to a backend server)
+    // Handle the file upload process here
     console.log(selectedFile);
     alert('File uploaded successfully');
   };
 
+  // Clean up the blob URL when the component is unmounted
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    };
+  }, [pdfUrl]);
+
   return (
-    <div className="container mx-auto p-4 flex">
+    <div className="flex flex-col items-center justify-center container p-4">
       <form onSubmit={handleUpload} className="flex flex-col space-y-4">
         <label className="block text-sm font-medium text-gray-700">
           Upload PDF
@@ -38,6 +54,7 @@ const FileUpload = () => {
           Upload
         </button>
       </form>
+      {pdfUrl && <PageDisplay pdfUrl={pdfUrl} />}
     </div>
   );
 };
