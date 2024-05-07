@@ -9,9 +9,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 function MyApp({ pdfUrl }) {
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
-  const [highlightedText, setHighlightedText] = useState('')
   const [phrases, setPhrases] = useState([]);
-  const [phraseNumber, setPhraseNumber] = useState(1)
+  const [phraseNumber, setPhraseNumber] = useState(0)
   const [numPhrases, setNumPhrases] = useState(null)
   const [explanations, setExplanations] = useState([])
   const [explanation, setExplanation] = useState('')
@@ -26,26 +25,21 @@ function MyApp({ pdfUrl }) {
   const handleMouseUp = () => { // Moved function here
     const selectedText = window.getSelection().toString();
     if (selectedText.length > 0) {
-      setHighlightedText(selectedText);
-      setPhrases([...phrases, selectedText])
-      setNumPhrases(phrases.length)
-      setPhraseNumber(phrases.length)
+      setPhrases(phrases => [...phrases, { text: selectedText, explanation: '' }]);
+      setPhraseNumber(phrases.length); 
     }
   };
 
   const handleExplanationChange = (event) => {
-    setExplanation(event.target.value);
-  };
+    const updatedPhrases = [...phrases];
+    updatedPhrases[phraseNumber].explanation = event.target.value;
+    setPhrases(updatedPhrases); 
+   };
 
+  
   const handleExplanationSubmit = (event) => {
     event.preventDefault();
-    setExplanations(explanations => {
-      const updatedExplanations = [...explanations];
-      updatedExplanations[phraseNumber] = explanation;
-      return updatedExplanations;
-    });
-
-    setExplanation('');
+    console.log(phrases[phraseNumber])
   };
 
   useEffect(()=>{
@@ -54,7 +48,7 @@ function MyApp({ pdfUrl }) {
 
   
   return (
-    <div className='flex flex-row'>
+    <div className='flex flex-row '>
       <div onMouseUp={handleMouseUp}>
       <Document
         file={pdfUrl}
@@ -89,46 +83,35 @@ function MyApp({ pdfUrl }) {
 
       <div className>
              {/* Highlight Text Section */}
-      <div className="space-y-4 p-4 fixed">
+      <div className="space-y-4 p-4 text-wrap fixed" style={{width: '400px', height: '95%', overflowY: 'auto', top: '10px'}}>
         <div className="p-4 border border-gray-200 rounded-md">
           <strong>Highlighted Text:</strong> 
           {phrases.length > 0 && (
             <div>
-            <div>
               <nav>
-                <button
-                  onClick={() => setPhraseNumber(prevPhrase => Math.max(prevPhrase - 1, 0))}
-                  disabled={phraseNumber === 0}
-                >
+                <button onClick={() => setPhraseNumber(prevPhrase => Math.max(prevPhrase - 1, 0))} disabled={phraseNumber === 0}>
                   Previous
                 </button>
-                <button
-                  onClick={() => setPhraseNumber(prevPhrase => Math.min(prevPhrase + 1, phrases.length - 1))}
-                  disabled={phraseNumber === phrases.length - 1}
-                >
+                <button onClick={() => setPhraseNumber(prevPhrase => Math.min(prevPhrase + 1, phrases.length - 1))} disabled={phraseNumber === phrases.length - 1}>
                   Next
                 </button>
               </nav>
               <p>Phrase {phraseNumber + 1} of {phrases.length}</p>
-              {/* Displaying the selected phrase */}
               <div className="text-lg text-blue-500">
-                {phrases[phraseNumber]}
+                {phrases[phraseNumber].text}
               </div>
-            </div>
-            <form onSubmit={handleExplanationSubmit}>
-         <label htmlFor="explanation">Explanation</label>
-         <input 
-         type="text"
-         className='flex border-2 border-gray-300 rounded-md'
-         value={explanation}
-         onChange={handleExplanationChange}
-         /> 
-         <button className="mt-3"type="submit">Submit</button>
-           </form>
-
+              <form onSubmit={handleExplanationSubmit}>
+                <label htmlFor="explanation">Explanation</label>
+                <input 
+                  type="text"
+                  className='flex border-2 border-gray-300 rounded-md'
+                  value={phrases[phraseNumber].explanation}
+                  onChange={handleExplanationChange}
+                /> 
+                <button className="mt-3" type="submit">Submit</button>
+              </form>
             </div>
           )}
-
         </div>
 
       </div>
